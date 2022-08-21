@@ -22,18 +22,13 @@ import java.util.Optional;
         @Autowired
         private ViaCepService viaCepService;
 
-        // Strategy: Implementar os métodos definidos na interface.
-        // Facade: Abstrair integrações com subsistemas, provendo uma interface simples.
-
         @Override
         public Iterable<Client> searchEveryone() {
-            // Buscar todos os Clientes.
             return clientRepository.findAll();
         }
 
         @Override
         public Client searchForId(Long id) {
-            // Buscar Cliente por ID.
             Optional<Client> client = clientRepository.findById(id);
             return client.get();
         }
@@ -45,7 +40,6 @@ import java.util.Optional;
 
         @Override
         public void update(Long id, Client client) {
-            // Buscar Cliente por ID, caso exista:
             Optional<Client> clientBd = clientRepository.findById(id);
             if (clientBd.isPresent()) {
                 saveClientWithCep(client);
@@ -54,21 +48,17 @@ import java.util.Optional;
 
         @Override
         public void delete(Long id) {
-            // Deletar Cliente por ID.
-            clientRepository.deleteById(id);
+           clientRepository.deleteById(id);
         }
 
         private void saveClientWithCep(Client client) {
-            // Verificar se o Endereco do Cliente já existe (pelo CEP).
             String cep = client.getAddress().getCep();
             Address address = addressRepository.findById(cep).orElseGet(() -> {
-                // Caso não exista, integrar com o ViaCEP e persistir o retorno.
                 Address newAddress = viaCepService.consultarCep(cep);
                 addressRepository.save(newAddress);
                 return newAddress;
             });
             client.setAddress(address);
-            // Inserir Cliente, vinculando o Endereco (novo ou existente).
             clientRepository.save(client);
         }
 }
